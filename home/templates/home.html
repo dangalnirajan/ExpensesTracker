@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block start %}
+
+
+
+
+<header>
+    <h2>Expenses Tracker</h2>
+</header>
+
+<div class="container">
+    <h4>Your Balance</h4>
+    <h1 id="balance">Rs.{{profile.balance}}</h1>
+
+    <div class="inc-exp-container">
+        <div>
+            <h4>Income</h4>
+            <p id="money-plus" class="money plus">+Rs.{{profile.income}}</p>
+        </div>
+        <div>
+            <h4>Expenses</h4>
+            <p id="money-minus" class="money minus">-Rs.{{profile.expenses}}</p>
+        </div>
+    </div>
+
+    <h3>History</h3>
+    <ul id="list" class="list">
+        {% for expense in expenses%}
+        {% if expense.expense_type == 'Positive'%}
+        <li class="plus">
+           {{expense.name}}<span>+Rs.{{expense.amount}} </span>
+        </li>
+        {% else %}
+        <li class="minus">
+            {{expense.name}}<span>-Rs.{{expense.amount}} </span>
+         </li>
+         {% endif %}
+        {% endfor %}
+    </ul>
+
+    <h3>Add new transaction</h3>
+    <form id="form" method="POST">
+        {% csrf_token %}
+        <div class="form-control">
+            <label for="text">Name</label>
+            <input type="text" name= "text" id="text" placeholder="Enter name of transaction..." />
+        </div>
+        <div class="form-control">
+            <label for="amount">Amount <br />
+            </label>
+            <input type="number" name="amount" id="amount" placeholder="Enter amount..." />
+        </div>
+        <div class="form-control">
+            <label for="text">Balance</label>
+            <select name="expense_type" class="form-control"> 
+                <option value ="Positive">Income</option>
+                <option value ="Negative">Expenses</option>
+            </select>
+        </div>
+        <button class="btn" type="submit">Add transaction</button>
+    </form>
+</div>
+{% comment %} 
+<script>
+const balance = document.getElementById('balance');
+    const money_plus = document.getElementById('money-plus');
+    const money_minus = document.getElementById('money-minus');
+    const list = document.getElementById('list');
+    const form = document.getElementById('form');
+    const text = document.getElementById('text');
+    const amount = document.getElementById('amount');
+    
+    const localStorageTransactions = JSON.parse(
+        localStorage.getItem('transactions')
+    );
+    
+    let transactions =
+        localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
+    
+    // Add transaction
+    function addTransaction(e) {
+        e.preventDefault();
+    
+        if (text.value.trim() === '' || amount.value.trim() === '') {
+            alert('Please add a text and amount');
+        } else {
+            const transaction = {
+                id: generateID(),
+                text: text.value,
+                amount: +amount.value
+            };
+    
+            transactions.push(transaction);
+    
+            addTransactionDOM(transaction);
+    
+            updateValues();
+    
+            updateLocalStorage();
+    
+            text.value = '';
+            amount.value = '';
+        }
+    }
+    
+    // Generate random ID
+    function generateID() {
+        return Math.floor(Math.random() * 100000000);
+    }
+    
+    // Add transactions to DOM list
+    function addTransactionDOM(transaction) {
+        // Get sign
+        const sign = transaction.amount < 0 ? '-' : '+';
+    
+        const item = document.createElement('li');
+    
+        // Add class based on value
+        item.classList.add(transaction.amount < 0 ? 'minus' : 'plus');
+    
+        item.innerHTML = `
+        ${transaction.text} <span>${sign}${Math.abs(
+            transaction.amount
+        )}</span> <button class="delete-btn" onclick="removeTransaction(${transaction.id
+            })">x</button>
+      `;
+    
+        list.appendChild(item);
+    }
+    
+    // Update the balance, income and expense
+    function updateValues() {
+        const amounts = transactions.map(transaction => transaction.amount);
+    
+        const total = amounts.reduce((acc, item) => (acc += item), 0).toFixed(2);
+    
+        const income = amounts
+            .filter(item => item > 0)
+            .reduce((acc, item) => (acc += item), 0)
+            .toFixed(2);
+    
+        const expense = (
+            amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) *
+            -1
+        ).toFixed(2);
+    
+        balance.innerText = `$${total}`;
+        money_plus.innerText = `$${income}`;
+        money_minus.innerText = `$${expense}`;
+    }
+    
+    // Remove transaction by ID
+    function removeTransaction(id) {
+        transactions = transactions.filter(transaction => transaction.id !== id);
+    
+        updateLocalStorage();
+    
+        init();
+    }
+    
+    // Update local storage transactions
+    function updateLocalStorage() {
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+    
+    // Init app
+    function init() {
+        list.innerHTML = '';
+    
+        transactions.forEach(addTransactionDOM);
+        updateValues();
+    }
+    
+    init();
+    
+    form.addEventListener('submit', addTransaction);</script> {% endcomment %} 
+
+{% endblock %}
